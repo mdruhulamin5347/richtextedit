@@ -34,7 +34,7 @@ for (const c of cases) {
     return Array.from(cells).map((c) => Math.round(c.getBoundingClientRect().width));
   });
   const colSizes = await page.evaluate(() => {
-    const m = window.RadiolensEditor.getHtml('#report_body_editor').match(/width: (\d+)px/g);
+    const m = window.RichTextEdit.getHtml('#report_body_editor').match(/width: (\d+)px/g);
     return m ? m.map((x) => parseInt(x.replace(/\D/g, ''), 10)) : null;
   });
   const ok = c.expect ? JSON.stringify(got) === JSON.stringify(c.expect) : true;

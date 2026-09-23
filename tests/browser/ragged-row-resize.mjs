@@ -50,7 +50,7 @@ await page.waitForTimeout(400);
 
 /** colSizes as the serializer writes them back out: the <colgroup>. */
 const readColSizes = () => page.evaluate(() => {
-  const html = window.RadiolensEditor.getHtml('#report_body_editor');
+  const html = window.RichTextEdit.getHtml('#report_body_editor');
   const m = html.match(/<colgroup>([\s\S]*?)<\/colgroup>/);
   return m ? [...m[1].matchAll(/width:\s*([\d.]+)px/g)].map((x) => Math.round(+x[1])) : null;
 });

@@ -6,7 +6,7 @@ import { TablePlugin } from "@platejs/table/react";
 import { type NodeEntry, type Path, type TElement, KEYS, PathApi } from "platejs";
 
 /**
- * Trimmed from RadioLens's `transforms.ts`.
+ * Trimmed from the upstream editor's `transforms.ts`.
  *
  * The original mapped every block type Plate ships — callout, code block, date,
  * excalidraw, equations, table of contents, column layouts, video/audio/file

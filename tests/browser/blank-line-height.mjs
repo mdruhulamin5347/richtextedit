@@ -107,7 +107,7 @@ const BLANK = '<p><br/></p>';
     );
 
     const html = await page.evaluate(() =>
-        window.RadiolensEditor.getHtml('#report_body_editor')
+        window.RichTextEdit.getHtml('#report_body_editor')
     );
     check(
         'the saved report states the gap it prints with',

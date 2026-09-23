@@ -119,7 +119,7 @@ type ToolbarButtonProps = {
   VariantProps<typeof toolbarButtonVariants>;
 
 /**
- * Deviation from RadioLens, and a necessary one here.
+ * Deviation from the upstream editor, and a necessary one here.
  *
  * Radix attaches a ref through `asChild`: DropdownMenuTrigger uses it to
  * register the button as the popper's ANCHOR. A plain function component cannot
@@ -134,7 +134,7 @@ const ToolbarButtonImpl = React.forwardRef<HTMLButtonElement, ToolbarButtonProps
     ref
   ) {
   return typeof pressed === "boolean" ? (
-    // Deviation from RadioLens, and the reason every toolbar dropdown was dead.
+    // Deviation from the upstream editor, and the reason every toolbar dropdown was dead.
     //
     // This branch used to be a ToolbarToggleGroup wrapping a ToolbarToggleItem.
     // Radix's ToggleGroup does not pass a forwarded ref through to the button,

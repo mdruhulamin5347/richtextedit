@@ -12,7 +12,7 @@ import { scopeEditorStyles } from './build/scope-editor-plugin.mjs';
 const externals = [...Object.keys(pkg.dependencies), ...Object.keys(pkg.peerDependencies)];
 const isExternal = (id: string) => externals.some((dep) => id === dep || id.startsWith(dep + '/'));
 
-/** ESM build for React apps: `import { RadiolensEditor } from '@radiolens/editor'`. */
+/** ESM build for React apps: `import { RichTextEdit } from 'rich-text-edit'`. */
 export default defineConfig({
     plugins: [react(), tailwindcss(), scopeEditorStyles()],
     resolve: {

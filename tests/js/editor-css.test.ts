@@ -11,7 +11,7 @@ import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import postcss from "postcss";
 
-const SCOPES = [".rl-editor-scope", "[data-radix-popper-content-wrapper]"];
+const SCOPES = [".rte-scope", "[data-radix-popper-content-wrapper]"];
 
 // The standalone build's stylesheet — the one a Blade page loads.
 const built = readdirSync("dist/standalone")
@@ -26,7 +26,7 @@ describe("design tokens", () => {
     // Radix mounts menus and dialogs on document.body. They reach these tokens
     // because they are portalled into a container that carries the scope class
     // (lib/portal-container.ts) — not because the tokens are global.
-    const scoped = built.match(/\.rl-editor-scope\{[^}]*\}/g)?.join("") ?? "";
+    const scoped = built.match(/\.rte-scope\{[^}]*\}/g)?.join("") ?? "";
     for (const token of ["--popover", "--background", "--border", "--muted", "--primary"]) {
       expect(scoped).toContain(token);
     }
@@ -38,7 +38,7 @@ describe("design tokens", () => {
     // the portal host itself must stay unpositioned, or it becomes the
     // containing block and every menu is offset by the height of the page.
     expect(built).toMatch(/\[data-radix-popper-content-wrapper\]\{[^}]*z-index:200\d\d/);
-    expect(built).toMatch(/\.rl-editor-portal\{[^}]*position:static/);
+    expect(built).toMatch(/\.rte-portal\{[^}]*position:static/);
   });
 });
 
@@ -50,24 +50,24 @@ describe("stylesheet isolation", () => {
     postcss.parse(built).walkRules((rule) => {
       if (rule.parent?.type === "atrule" && /keyframes$/.test((rule.parent as any).name)) return;
       for (const selector of rule.selectors) {
-        if (!selector.trim().startsWith(".rl-editor-scope")) escaped.push(selector);
+        if (!selector.trim().startsWith(".rte-scope")) escaped.push(selector);
       }
     });
     expect(escaped).toEqual([]);
   });
 
   it("ships preflight, scoped — the baseline Plate's components assume", () => {
-    expect(built).toMatch(/\.rl-editor-scope \*[^{]*\{[^}]*box-sizing:border-box/);
+    expect(built).toMatch(/\.rte-scope \*[^{]*\{[^}]*box-sizing:border-box/);
   });
 
   it("marks colliding utilities !important, since Bootstrap declares its own that way", () => {
     // Specificity cannot beat an !important declaration, so these must match it.
-    expect(built).toMatch(/\.rl-editor-scope \.p-0\{padding:0 ?!important\}/);
+    expect(built).toMatch(/\.rte-scope \.p-0\{padding:0 ?!important\}/);
   });
 
   it("neutralises Bootstrap's .table, which forced width:100% and broke column resizing", () => {
     // Tailwind's .table is only `display: table`, so there was no editor
     // declaration for width to override Bootstrap's with.
-    expect(built).toMatch(/\.rl-editor-scope \.table\{[^}]*width:unset/);
+    expect(built).toMatch(/\.rte-scope \.table\{[^}]*width:unset/);
   });
 });

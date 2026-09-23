@@ -155,7 +155,7 @@ export const TableElement = withHOC(
         <div className="group/table relative w-fit max-w-full">
           <table
             className={cn(
-              // Deviation from RadioLens, and a deliberate one: the `table`
+              // Deviation from the upstream editor, and a deliberate one: the `table`
               // utility (display: table) is REDUNDANT on a <table>, and its
               // class name is Bootstrap's table component. Carrying it here let
               // Bootstrap apply `width: 100%` — which makes a fixed-layout table
@@ -690,17 +690,17 @@ export function TableCellElement({
     // The whole rule the document draws on each edge — width, style and colour
     // — so a 2.25pt double line under a header renders as a 2.25pt double
     // line. See `cellBorderShorthand`.
-    "--rl-border-top": cellBorderShorthand(borders.top),
-    "--rl-border-right": cellBorderShorthand(borders.right),
-    "--rl-border-bottom": cellBorderShorthand(borders.bottom),
-    "--rl-border-left": cellBorderShorthand(borders.left),
+    "--rte-border-top": cellBorderShorthand(borders.top),
+    "--rte-border-right": cellBorderShorthand(borders.right),
+    "--rte-border-bottom": cellBorderShorthand(borders.bottom),
+    "--rte-border-left": cellBorderShorthand(borders.left),
     // The editor's own dashes, kept in their own four vars — and drawn on their
     // own pseudo-element — so nothing the DOCUMENT says about this cell is
     // mixed with what the editor adds to help you read it. See `cellGuide`.
-    "--rl-guide-top": cellGuide(borders.top),
-    "--rl-guide-right": cellGuide(borders.right),
-    "--rl-guide-bottom": cellGuide(borders.bottom),
-    "--rl-guide-left": cellGuide(borders.left),
+    "--rte-guide-top": cellGuide(borders.top),
+    "--rte-guide-right": cellGuide(borders.right),
+    "--rte-guide-bottom": cellGuide(borders.bottom),
+    "--rte-guide-left": cellGuide(borders.left),
     // Alignment the source put on the cell rather than on its paragraphs.
     ...(element.align ? { textAlign: element.align as React.CSSProperties["textAlign"] } : null),
     ...(element.verticalAlign
@@ -756,10 +756,10 @@ export function TableCellElement({
         // An arbitrary property rather than a utility because there is no
         // Tailwind spelling of "whatever this cell says": the value is a
         // complete `border` shorthand computed per cell in `cellStyle`.
-        "before:[border-top:var(--rl-border-top)]",
-        "before:[border-right:var(--rl-border-right)]",
-        "before:[border-bottom:var(--rl-border-bottom)]",
-        "before:[border-left:var(--rl-border-left)]",
+        "before:[border-top:var(--rte-border-top)]",
+        "before:[border-right:var(--rte-border-right)]",
+        "before:[border-bottom:var(--rte-border-bottom)]",
+        "before:[border-left:var(--rte-border-left)]",
         // Gridlines, on ::after. `before` is the document's own rules and must
         // stay that way: tests/browser/table-border-design.mjs measures it
         // against a bare browser's rendering of the same markup, and a line
@@ -771,10 +771,10 @@ export function TableCellElement({
         // the cell's content — so the guide drew one cell-height below the cell
         // it belongs to, showing as a stray tick under the table.
         "after:absolute after:inset-0 after:box-border after:size-full after:content-[''] after:select-none",
-        "after:[border-top:var(--rl-guide-top)]",
-        "after:[border-right:var(--rl-guide-right)]",
-        "after:[border-bottom:var(--rl-guide-bottom)]",
-        "after:[border-left:var(--rl-guide-left)]"
+        "after:[border-top:var(--rte-guide-top)]",
+        "after:[border-right:var(--rte-guide-right)]",
+        "after:[border-bottom:var(--rte-guide-bottom)]",
+        "after:[border-left:var(--rte-guide-left)]"
       )}
       style={cellStyle}
       attributes={{

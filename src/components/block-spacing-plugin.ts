@@ -17,7 +17,7 @@ import { extractBlockSpacing } from "@/lib/table-widths";
  *
  * `extractBlockSpacing` returns nothing for a block outside a cell, which is
  * what keeps the editor's own paragraph spacing — settled ground — exactly
- * where it is. See ai/memory/radiolens-editor-paste-scope.md.
+ * where it is. See the web app's editor paste-scope notes in ai/memory/.
  *
  * INJECTED into the paragraph plugin rather than configured on it: DocxPlugin
  * `override`s `p`'s deserializer parse outright with its own (the one that

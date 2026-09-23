@@ -61,7 +61,7 @@ async function open(initialHtml) {
  * The font-size box. It is the only text input in the toolbar — ToolbarButton
  * puts a control's label in a Radix tooltip, which is not an accessible name.
  */
-const BOX = '.rl-editor-scope input[type="text"][data-plate-focus="true"]';
+const BOX = '.rte-scope input[type="text"][data-plate-focus="true"]';
 
 /**
  * Select the first line of text and let the control catch up.
@@ -89,7 +89,7 @@ async function selectFirstLine(page) {
  */
 const stepper = (page, icon) =>
     page
-        .locator(`.rl-editor-scope div:has(> input[data-plate-focus="true"]) > button:has(svg.lucide-${icon})`)
+        .locator(`.rte-scope div:has(> input[data-plate-focus="true"]) > button:has(svg.lucide-${icon})`)
         .first();
 
 /** The size, to a hundredth of a pixel, the first run is actually drawn at. */
@@ -130,7 +130,7 @@ async function pasteWord(page, source) {
     );
 
     const saved = await page.evaluate(() =>
-        window.RadiolensEditor.getHtml('#report_body_editor')
+        window.RichTextEdit.getHtml('#report_body_editor')
     );
     check(
         'and is SAVED in the points the document stated, so the print matches',
@@ -162,7 +162,7 @@ async function pasteWord(page, source) {
     // The size on the node is untouched, so opening a stored report and saving
     // it does not rewrite every size in it. ~70 live installations have these.
     const saved = await page.evaluate(() =>
-        window.RadiolensEditor.getHtml('#report_body_editor')
+        window.RichTextEdit.getHtml('#report_body_editor')
     );
     check(
         'and open + save leaves the px in the report, not points',
@@ -213,7 +213,7 @@ async function pasteWord(page, source) {
     );
 
     const saved = await page.evaluate(() =>
-        window.RadiolensEditor.getHtml('#report_body_editor')
+        window.RichTextEdit.getHtml('#report_body_editor')
     );
     check('and what it saved is points', saved.includes('font-size: 13pt'), saved.slice(0, 120));
 

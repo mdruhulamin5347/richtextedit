@@ -208,7 +208,7 @@ for (const { name, html } of CASES) {
   await page.waitForTimeout(500);
 
   const got = await page.evaluate(`(${MEASURE})(true)`);
-  const saved = await page.evaluate(() => window.RadiolensEditor.getHtml('#report_body_editor'));
+  const saved = await page.evaluate(() => window.RichTextEdit.getHtml('#report_body_editor'));
 
   check(
     `${name}: the editor draws what the browser draws`,

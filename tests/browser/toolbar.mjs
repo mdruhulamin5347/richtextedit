@@ -35,7 +35,7 @@ await page.waitForTimeout(200);
 
 const text = await page.evaluate(() => {
     const el = document.querySelector('[data-slate-editor]');
-    const scope = document.querySelector('.rl-editor-scope');
+    const scope = document.querySelector('.rte-scope');
     return {
         color: getComputedStyle(el).color,
         token: getComputedStyle(scope).getPropertyValue('--foreground').trim(),

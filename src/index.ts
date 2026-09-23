@@ -1,18 +1,18 @@
 /**
  * Package entry for bundlers (React apps).
  *
- * Exposes both surfaces: the <RadiolensEditor> component for apps that render
+ * Exposes both surfaces: the <RichTextEdit> component for apps that render
  * React themselves, and the mount API for pages that only own a <div> and a
- * <textarea>. Styles ship separately as `@radiolens/editor/style.css`.
+ * <textarea>. Styles ship separately as `rich-text-edit/style.css`.
  */
 export {
-  RadiolensEditor,
+  RichTextEdit,
   type PasteMode,
-  type RadiolensEditorHandle,
-  type RadiolensEditorProps,
-} from "@/RadiolensEditor";
+  type RichTextEditHandle,
+  type RichTextEditProps,
+} from "@/RichTextEdit";
 export {
-  default as RadiolensEditorApi,
+  default as RichTextEditApi,
   type MountOptions,
   type StorageFormat,
 } from "@/entry";

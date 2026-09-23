@@ -93,7 +93,7 @@ for (const [name, html] of CASES) {
         return result;
     }, html);
 
-    await page.evaluate(() => window.RadiolensEditor.setHtml('#report_body_editor', '<p></p>'));
+    await page.evaluate(() => window.RichTextEdit.setHtml('#report_body_editor', '<p></p>'));
     await page.click('[data-slate-editor]');
     await page.evaluate(async (source) => {
         await navigator.clipboard.write([

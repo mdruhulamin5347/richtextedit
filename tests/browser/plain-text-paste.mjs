@@ -109,7 +109,7 @@ await page.keyboard.press('Control+V');
 await page.waitForTimeout(600);
 
 const editor = await page.evaluate(() => ({
-    saved: window.RadiolensEditor.getHtml('#report_body_editor'),
+    saved: window.RichTextEdit.getHtml('#report_body_editor'),
     onScreen: Array.from(document.querySelectorAll('[data-slate-editor] > *')).map((block) => ({
         text: block.textContent,
         colon: window.__xOf(block, ':'),
@@ -211,13 +211,13 @@ check(
 // whitespace with JavaScript's \s, which counts U+00A0 where CSS does not, so
 // every one of these arrived with its indentation stripped.
 const legacy = await page.evaluate(async (html) => {
-    window.RadiolensEditor.setHtml('#report_body_editor', html);
+    window.RichTextEdit.setHtml('#report_body_editor', html);
     await new Promise((resolve) => setTimeout(resolve, 300));
     const blocks = Array.from(document.querySelectorAll('[data-slate-editor] > *'));
     return {
         indent: window.__xOf(blocks[0], 'R'),
         blocks: blocks.length,
-        saved: window.RadiolensEditor.getHtml('#report_body_editor'),
+        saved: window.RichTextEdit.getHtml('#report_body_editor'),
     };
 }, LEGACY);
 

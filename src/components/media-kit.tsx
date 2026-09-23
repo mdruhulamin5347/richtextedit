@@ -12,7 +12,7 @@ import { PlaceholderElement } from "@/components/ui/media-placeholder-node";
 import { MediaPreviewDialog } from "@/components/ui/media-preview-dialog";
 import { MediaUploadToast } from "@/components/ui/media-upload-toast";
 
-// Deviation from RadioLens: only IMAGES are enabled. The embed / video / audio
+// Deviation from the upstream editor: only IMAGES are enabled. The embed / video / audio
 // / file plugins are deliberately absent — none of them can survive
 // serialization to the HTML that dompdf and the print blades consume, and
 // between them they dragged react-player, dash.js and hls.js (~1.5MB) into the

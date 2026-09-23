@@ -92,7 +92,7 @@ describe("opening a stored report", () => {
     const stored = `<p><img src="file:///C:/Temp/clip_image001.png" alt="" style="max-width: 100%; height: auto;" /></p>`;
     document.body.innerHTML = `
       <form id="f"><textarea id="report_body" hidden></textarea>
-      <div class="rl-editor-scope" id="report_body_editor"></div></form>`;
+      <div class="rte-scope" id="report_body_editor"></div></form>`;
     (document.getElementById("report_body") as HTMLTextAreaElement).value = stored;
     await act(async () => {
       api.mount("#report_body_editor", { textarea: "#report_body" });

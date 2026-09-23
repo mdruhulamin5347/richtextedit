@@ -1,5 +1,5 @@
 /**
- * Vite plugin: confine the editor's stylesheet to `.rl-editor-scope` and let it
+ * Vite plugin: confine the editor's stylesheet to `.rte-scope` and let it
  * win against Bootstrap inside it. Shared by both builds.
  *
  * See scope-editor-css.mjs for why this is needed — short version: 57 Tailwind

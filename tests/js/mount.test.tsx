@@ -14,7 +14,7 @@ function buildPage(initialHtml = "") {
   document.body.innerHTML = `
     <form id="f" action="/store" method="POST">
       <textarea name="report_body" id="report_body" hidden>${initialHtml}</textarea>
-      <div class="rl-editor-scope" id="report_body_editor"></div>
+      <div class="rte-scope" id="report_body_editor"></div>
       <button type="submit">Create</button>
     </form>`;
   return {
@@ -66,14 +66,14 @@ describe("opening a report stored without a block wrapper", () => {
   });
 });
 
-describe("RadiolensEditor mount API", () => {
+describe("RichTextEdit mount API", () => {
   beforeEach(() => {
     document.body.innerHTML = "";
   });
 
   it("exposes the global the Blade page calls", () => {
     expect(typeof api.mount).toBe("function");
-    expect((window as any).RadiolensEditor).toBe(api);
+    expect((window as any).RichTextEdit).toBe(api);
   });
 
   it("mounts into a plain div and renders an editable surface", async () => {

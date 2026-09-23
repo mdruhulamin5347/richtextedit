@@ -36,7 +36,7 @@ async function borderWidths(html) {
     });
     // Serialize through the editor rather than reading the textarea, which
     // still holds the seeded HTML until a change flushes it.
-    return { widths, saved: window.RadiolensEditor.getHtml('#report_body_editor') };
+    return { widths, saved: window.RichTextEdit.getHtml('#report_body_editor') };
   });
   await page.close(); server.close();
   return data;

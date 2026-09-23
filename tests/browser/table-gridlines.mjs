@@ -152,7 +152,7 @@ async function open(initialHtml) {
         `${grid[0][0].guideColor} against ${ink}`
     );
 
-    const html = await page.evaluate(() => window.RadiolensEditor.getHtml('#report_body_editor'));
+    const html = await page.evaluate(() => window.RichTextEdit.getHtml('#report_body_editor'));
     check(
         'and none of it reaches the saved report',
         html.includes('border: 0') && !/border-(top|right|bottom|left):/.test(html),

@@ -16,7 +16,7 @@
  * Measured as the DIFFERENCE the spacing makes, not as an absolute height. The
  * editor's paragraphs sit on an 18px base where the document's text is 11pt, so
  * a row here is a few px deeper than Word's whatever happens — that residual is
- * settled ground (see ai/memory/radiolens-editor-paste-scope.md) and it cancels
+ * settled ground (see the web app's editor paste-scope notes) and it cancels
  * out of a comparison between two documents that differ only in their spacing.
  */
 import { chromium } from 'playwright';

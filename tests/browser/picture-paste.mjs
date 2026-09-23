@@ -56,7 +56,7 @@ await page.evaluate(() => window.__ready);
 
 /** Paste a clipboard built in the page, the way the browser really delivers one. */
 async function paste(html, withFile) {
-    await page.evaluate(() => window.RadiolensEditor.setHtml('#report_body_editor', '<p>start</p>'));
+    await page.evaluate(() => window.RichTextEdit.setHtml('#report_body_editor', '<p>start</p>'));
     await page.waitForTimeout(80);
     await page.click('[data-slate-editor] [data-slate-node="element"]');
     await page.keyboard.press('End');
@@ -85,7 +85,7 @@ async function paste(html, withFile) {
                 })
             );
             await new Promise((r) => setTimeout(r, 700));
-            return window.RadiolensEditor.getHtml('#report_body_editor');
+            return window.RichTextEdit.getHtml('#report_body_editor');
         },
         { html, withFile, PNG_B64 }
     );

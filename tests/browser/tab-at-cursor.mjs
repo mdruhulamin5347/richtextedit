@@ -35,7 +35,7 @@ const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
 async function press(html, selector, right, keys) {
   await page.goto(`http://127.0.0.1:${port}/`);
   await page.evaluate(() => window.__ready);
-  await page.evaluate((h) => window.RadiolensEditor.setHtml('#report_body_editor', h), html);
+  await page.evaluate((h) => window.RichTextEdit.setHtml('#report_body_editor', h), html);
   await page.waitForSelector(selector, { timeout: 5000 });
   await page.waitForTimeout(250);
   await page.click(selector);
@@ -46,7 +46,7 @@ async function press(html, selector, right, keys) {
     await page.keyboard.press(key);
     await page.waitForTimeout(180);
   }
-  return page.evaluate(() => window.RadiolensEditor.getHtml('#report_body_editor'));
+  return page.evaluate(() => window.RichTextEdit.getHtml('#report_body_editor'));
 }
 
 /** A tab, as the serializer writes one — see lib/whitespace.ts. */

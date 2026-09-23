@@ -9,7 +9,7 @@
  * produced the way Summernote produced it: self-contained, inline-styled, plain
  * tags.
  *
- * This is a hardened version of the serializer in RadioLens's
+ * This is a hardened version of the serializer in the upstream editor's
  * `rich-text-editor.tsx`. The additions are all round-trip fixes — that
  * serializer silently dropped table column widths, cell borders/shading, nested
  * lists, hard breaks and every non-image media node.

@@ -1,5 +1,5 @@
 /**
- * Re-roots the editor's stylesheet under `.rl-editor-scope`.
+ * Re-roots the editor's stylesheet under `.rte-scope`.
  *
  * The editor imports Tailwind WHOLE, preflight included, because Plate's node
  * components are written against that baseline. The admin panel it is mounted
@@ -11,7 +11,7 @@
  *
  * Three things happen here, and the third is the unobvious one:
  *
- *   1. `scopeEditorCss` prefixes every selector with `.rl-editor-scope`.
+ *   1. `scopeEditorCss` prefixes every selector with `.rte-scope`.
  *   2. It marks a rule's declarations `!important` when the rule's own class
  *      name also names a Bootstrap utility that Bootstrap declares
  *      `!important` — `.p-0`, `.mb-1`, `.py-1` and ~54 others. Specificity
@@ -31,8 +31,8 @@
  * Element defaults are deliberately NOT neutralised. For every property
  * Bootstrap's reboot states for an element, Bootstrap is what the editor shows
  * — a heading is reboot's 500-weight one, a list is indented reboot's 2rem.
- * That is the contract `resources/views/admin_panel/pages/_partials/
- * radiolens_report_body_styles.blade.php` mirrors for print, and
+ * That is the contract the web app's report-body print styles partial
+ * mirrors for print, and
  * the web app's `tests/browser/print-parity.mjs` measures both sides against it.
  *
  * Guarded by tests/js/editor-css.test.ts, which reads the built css back.
@@ -40,13 +40,13 @@
 import fs from 'node:fs';
 import postcss from 'postcss';
 
-const SCOPE = '.rl-editor-scope';
+const SCOPE = '.rte-scope';
 
 /**
  * Selectors naming the document root. Inside this bundle they mean the editor
  * container, so they are REPLACED by the scope rather than prefixed with it —
  * this is what puts preflight's `html` rule and editor.css's `:root` tokens
- * onto `.rl-editor-scope`, where portalled menus pick them up (they are
+ * onto `.rte-scope`, where portalled menus pick them up (they are
  * rendered into a host that carries the class, see lib/portal-container.ts).
  *
  * `body` is not in this list on purpose. Preflight's only body rule is
@@ -110,10 +110,10 @@ function scopeSelector(selector) {
         return SCOPE + trimmed.slice(root[0].length);
     }
 
-    // The portal host carries `rl-editor-scope` alongside its own class, so it
+    // The portal host carries `rte-scope` alongside its own class, so it
     // is the scope element rather than something inside it — compounded, not
     // descended, or the rule would never match the host itself.
-    if (trimmed.startsWith('.rl-editor-')) {
+    if (trimmed.startsWith('.rte-')) {
         return SCOPE + trimmed;
     }
 
@@ -145,7 +145,7 @@ export function bootstrapImportantClasses(path) {
 }
 
 /**
- * Confine a stylesheet to `.rl-editor-scope`.
+ * Confine a stylesheet to `.rte-scope`.
  *
  * @param {string} css the built editor stylesheet
  * @param {Set<string>} important class names Bootstrap declares `!important` on
@@ -216,7 +216,7 @@ export function bootstrapNeutralizerCss(bootstrapCss, scopedCss) {
 
         for (const selector of rule.selectors) {
             for (const name of selectorClasses(selector)) {
-                if (name === 'rl-editor-scope' || name === 'rl-editor-portal') {
+                if (name === 'rte-scope' || name === 'rte-portal') {
                     continue;
                 }
 

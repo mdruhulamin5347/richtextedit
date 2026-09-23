@@ -117,7 +117,7 @@ p.MsoNormal {margin:0cm; font-size:11.0pt; font-family:"Calibri",sans-serif;}
         ['1.5 lines', '150%', 1.5, '1.5'],
         ['Double', '200%', 2, '2'],
     ]) {
-        await page.evaluate(() => window.RadiolensEditor.setHtml('#report_body_editor', ''));
+        await page.evaluate(() => window.RichTextEdit.setHtml('#report_body_editor', ''));
         await page.click('[data-slate-editor]');
         await page.evaluate(async (src) => {
             await navigator.clipboard.write([
@@ -198,7 +198,7 @@ p.MsoNormal {margin:0cm; font-size:11.0pt; font-family:"Calibri",sans-serif;}
     // Whatever the control stored has to be a plain ratio: the printed page
     // runs no script, so it can only be right if the number is already right.
     const saved = await page.evaluate(() =>
-        window.RadiolensEditor.getHtml('#report_body_editor')
+        window.RichTextEdit.getHtml('#report_body_editor')
     );
     const stated = saved.match(/line-height:\s*([\d.]+)/);
     check(
@@ -272,7 +272,7 @@ td {font-size:11.0pt; font-family:Calibri, sans-serif; line-height:150%;}
             '1.2',
         ],
     ]) {
-        await page.evaluate(() => window.RadiolensEditor.setHtml('#report_body_editor', ''));
+        await page.evaluate(() => window.RichTextEdit.setHtml('#report_body_editor', ''));
         await page.click('[data-slate-editor]');
         await page.evaluate(async (html) => {
             await navigator.clipboard.write([

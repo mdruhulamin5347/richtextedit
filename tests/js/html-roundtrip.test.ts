@@ -79,7 +79,7 @@ describe("tables — the part the old serializer damaged", () => {
   });
 
   it("emits black borders, not the washed-out default", () => {
-    // The RadioLens serializer hardcoded `1px solid #ddd`, silently restyling
+    // The upstream serializer hardcoded `1px solid #ddd`, silently restyling
     // every bordered lab table on its first re-save.
     //
     // Written per side rather than as one `border:` shorthand, because each

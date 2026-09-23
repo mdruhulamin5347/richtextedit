@@ -28,8 +28,8 @@ const MIME = {
 /** The standalone build — run `pnpm run build:standalone` first. */
 function assets() {
     return {
-        js: '/standalone/radiolens-editor.iife.js',
-        css: ['/standalone/radiolens-editor.css'],
+        js: '/standalone/rich-text-edit.iife.js',
+        css: ['/standalone/rich-text-edit.css'],
     };
 }
 
@@ -52,7 +52,7 @@ ${css.map((c) => `<link rel="stylesheet" href="${c}">`).join('\n')}
     <div class="form-group">
       <label for="report_body">Report Body</label>
       <textarea name="report_body" id="report_body" hidden>${initialHtml.replace(/</g, '&lt;')}</textarea>
-      <div class="rl-editor-scope" id="report_body_editor"></div>
+      <div class="rte-scope" id="report_body_editor"></div>
     </div>
     <button type="submit" class="btn btn-success btn-sm">Create</button>
   </form>
@@ -61,8 +61,8 @@ ${css.map((c) => `<link rel="stylesheet" href="${c}">`).join('\n')}
 <script>
   window.__ready = new Promise((resolve) => {
     (function wait() {
-      if (!window.RadiolensEditor) return void setTimeout(wait, 20);
-      window.RadiolensEditor.mount('#report_body_editor', {
+      if (!window.RichTextEdit) return void setTimeout(wait, 20);
+      window.RichTextEdit.mount('#report_body_editor', {
         textarea: '#report_body', minHeight: 400,
       });
       requestAnimationFrame(() => requestAnimationFrame(resolve));

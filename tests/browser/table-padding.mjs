@@ -133,7 +133,7 @@ const got = await page.evaluate(() => {
     naturalLine,
     rowHeight: Math.round(rows[0].getBoundingClientRect().height),
     tableHeightPerRow: Math.round((table.getBoundingClientRect().height / rows.length) * 10) / 10,
-    saved: window.RadiolensEditor.getHtml('#report_body_editor'),
+    saved: window.RichTextEdit.getHtml('#report_body_editor'),
   };
 });
 

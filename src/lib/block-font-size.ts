@@ -33,8 +33,8 @@
  * 2026-09-02, after the row-height question ("small text hole margin ta akoi
  * thakbe na text er opor dynamic hobe?"). It had been built once before across
  * the whole document and reverted; this time it was chosen deliberately, over
- * the narrower table-only option. See
- * ai/memory/radiolens-editor-paste-scope.md.
+ * the narrower table-only option. See the web app's editor paste-scope
+ * notes in ai/memory/.
  */
 import type { TElement, TText } from "platejs";
 

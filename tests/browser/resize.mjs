@@ -42,7 +42,7 @@ await page.waitForTimeout(300);
 
 check('editor mounted', (await page.locator('[data-slate-editor]').count()) > 0);
 check('table rendered', (await page.locator('[data-slate-editor] table').count()) > 0);
-// The first <td> is RadioLens's row drag-handle cell, not a content column.
+// The first <td> is the upstream editor's row drag-handle cell, not a content column.
 const cells = page.locator('[data-slate-editor] table tr').first().locator('td:not(.w-2)');
 check('three content columns', (await cells.count()) === 3, `got ${await cells.count()}`);
 

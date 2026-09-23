@@ -1,7 +1,7 @@
 {
-    "name": "@radiolens/editor",
+    "name": "rich-text-edit",
     "version": "0.1.0",
-    "description": "RadioLens rich text editor (Plate) with HTML and JSON storage.",
+    "description": "RichTextEdit: a rich text editor (Plate) with HTML and JSON storage.",
     "private": true,
     "type": "module",
     "packageManager": "pnpm@10.17.0",
@@ -14,8 +14,8 @@
             "import": "./dist/index.js"
         },
         "./style.css": "./dist/style.css",
-        "./standalone": "./dist/standalone/radiolens-editor.iife.js",
-        "./standalone.css": "./dist/standalone/radiolens-editor.css"
+        "./standalone": "./dist/standalone/rich-text-edit.iife.js",
+        "./standalone.css": "./dist/standalone/rich-text-edit.css"
     },
     "files": [
         "dist"

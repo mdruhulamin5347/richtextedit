@@ -41,10 +41,10 @@ import { WordTextboxPlugin } from "@/components/word-textbox-plugin";
 export type PasteMode = "clean" | "faithful";
 
 /**
- * The editor's plugin set. Mirrors RadioLens's `EditorPlugins` minus the
+ * The editor's plugin set. Mirrors the upstream editor's `EditorPlugins` minus the
  * pieces that only make sense there: Yjs collaboration, dictation, spellcheck,
  * short-form autoformat and the selection-actions toolbar (all of which call
- * RadioLens APIs).
+ * upstream-only APIs).
  *
  * Kept in its own module so the round-trip tests can build the exact same set
  * without rendering React.
@@ -86,7 +86,7 @@ export function buildPlugins(pasteMode: PasteMode = "clean") {
     // neither the attribute nor the style. See components/image-size-plugin.ts.
     ImageSizePlugin,
     ...TableKit,
-    // An addition beyond RadioLens, kept for a specific reason: Plate only
+    // An addition beyond the upstream editor, kept for a specific reason: Plate only
     // commits a column resize back to the document when the table already has
     // `colSizes`. Without this, dragging a border resizes the column on screen
     // and the new width is lost on save. Verified both ways in

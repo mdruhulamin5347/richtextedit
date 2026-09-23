@@ -15,7 +15,7 @@ function buildPage(initial = "") {
   document.body.innerHTML = `
     <form id="f" action="/store" method="POST">
       <textarea name="report_body" id="report_body" hidden></textarea>
-      <div class="rl-editor-scope" id="report_body_editor"></div>
+      <div class="rte-scope" id="report_body_editor"></div>
       <button type="submit">Create</button>
     </form>`;
   const textarea = document.getElementById("report_body") as HTMLTextAreaElement;

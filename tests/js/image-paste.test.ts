@@ -42,7 +42,7 @@ function paste(html: string) {
 function mount(initialHtml: string) {
   document.body.innerHTML = `
     <form id="f"><textarea id="report_body" hidden></textarea>
-    <div class="rl-editor-scope" id="report_body_editor"></div></form>`;
+    <div class="rte-scope" id="report_body_editor"></div></form>`;
   (document.getElementById("report_body") as HTMLTextAreaElement).value = initialHtml;
   return act(async () => {
     api.mount("#report_body_editor", { textarea: "#report_body" });

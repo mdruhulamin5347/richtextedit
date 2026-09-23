@@ -5,7 +5,7 @@
  * editor properly". A size that reaches nothing is not a small loss: the run
  * falls back to the editable's own base and the paragraph comes out at a size
  * nobody chose — bigger than the document, as often as not, which is what made
- * [[radiolens-inherited-font-size]] look arbitrary ("the table header is
+ * the inherited-font-size bug look arbitrary ("the table header is
  * perfect but the body is large").
  *
  * So this is a MATRIX rather than a set of scenarios, and it is deliberately

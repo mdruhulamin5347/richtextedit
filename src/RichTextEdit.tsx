@@ -163,7 +163,7 @@ function deserializeJson(editor: SlateEditor, value?: Value | string | null): Va
     try {
       parsed = JSON.parse(value);
     } catch {
-      console.error("[RadiolensEditor] setValue: not valid JSON");
+      console.error("[RichTextEdit] setValue: not valid JSON");
       return EMPTY_VALUE;
     }
   }
@@ -178,11 +178,11 @@ function deserializeJson(editor: SlateEditor, value?: Value | string | null): Va
  * This is a LAG, not merely a throttle: the form posts whatever the textarea
  * holds, so anything typed inside this window is not yet in what a submit would
  * send. The submit handler force-flushes for exactly that reason — see
- * `entry.tsx`. 250ms matches RadioLens.
+ * `entry.tsx`. 250ms matches the upstream editor.
  */
 const PUBLISH_DEBOUNCE_MS = 250;
 
-export interface RadiolensEditorProps {
+export interface RichTextEditProps {
   /** Existing report_body HTML (legacy Summernote content included). */
   initialHtml?: string;
   /**
@@ -208,7 +208,7 @@ export interface RadiolensEditorProps {
   pasteMode?: PasteMode;
 }
 
-export interface RadiolensEditorHandle {
+export interface RichTextEditHandle {
   /** Serialize now, bypassing the debounce. Used by the form submit hook. */
   flush: () => string;
   getHtml: () => string;
@@ -314,8 +314,8 @@ const ReportToolbar = React.memo(function ReportToolbar({
 
 export type { PasteMode };
 
-export const RadiolensEditor = React.forwardRef<RadiolensEditorHandle, RadiolensEditorProps>(
-  function RadiolensEditor(
+export const RichTextEdit = React.forwardRef<RichTextEditHandle, RichTextEditProps>(
+  function RichTextEdit(
     {
       initialHtml = "",
       initialValue,
@@ -454,4 +454,4 @@ export const RadiolensEditor = React.forwardRef<RadiolensEditorHandle, Radiolens
   }
 );
 
-export default RadiolensEditor;
+export default RichTextEdit;

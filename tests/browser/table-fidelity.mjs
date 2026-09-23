@@ -101,7 +101,7 @@ const got = await page.evaluate(() => {
     (c) => !c.classList.contains('w-2')
   );
   const block = table.closest('[data-slate-node="element"]');
-  const saved = window.RadiolensEditor.getHtml('#report_body_editor');
+  const saved = window.RichTextEdit.getHtml('#report_body_editor');
   return {
     centred: cells.map((c) =>
       /center/.test(

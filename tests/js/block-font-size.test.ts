@@ -217,7 +217,7 @@ describe("it must not fight the paste normalizer", () => {
   it("opens a report whose sizes are in points, instead of failing to normalize", async () => {
     document.body.innerHTML = `
       <form id="f"><textarea id="report_body" hidden>${HEADER.replace(/</g, "&lt;")}</textarea>
-      <div class="rl-editor-scope" id="report_body_editor"></div></form>`;
+      <div class="rte-scope" id="report_body_editor"></div></form>`;
 
     await act(async () => {
       api.mount("#report_body_editor", { textarea: "#report_body" });

@@ -24,7 +24,7 @@ import { plateValueToHtml } from "@/lib/html-serializer";
 function mount(initialHtml: string) {
   document.body.innerHTML = `
     <form id="f"><textarea id="report_body" hidden>${initialHtml}</textarea>
-    <div class="rl-editor-scope" id="report_body_editor"></div></form>`;
+    <div class="rte-scope" id="report_body_editor"></div></form>`;
   return act(async () => {
     api.mount("#report_body_editor", { textarea: "#report_body" });
   });

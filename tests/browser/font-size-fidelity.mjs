@@ -204,7 +204,7 @@ const compare = (label, truth, mine) => {
   compare('stored report', truth, mine);
 
   const saved = await page.evaluate(() =>
-    window.RadiolensEditor.getHtml('#report_body_editor')
+    window.RichTextEdit.getHtml('#report_body_editor')
   );
   check(
     'and saving it does not write the sizes out of the report',

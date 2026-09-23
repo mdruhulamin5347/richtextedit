@@ -51,7 +51,7 @@ export function EditorContainer({
         // against the DOM mutations typing produces. Per keystroke, on the one
         // page where that cost lands under a caret. A class states the same
         // relationship for free. See globals.css.
-        "rl-editor-container",
+        "rte-container",
         "ignore-click-outside/toolbar",
         editorContainerVariants({ variant }),
         className

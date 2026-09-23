@@ -1,15 +1,15 @@
 /**
  * Editor styles.
  *
- * Tailwind is imported WHOLE, preflight included — the same thing RadioLens
- * does, so its Plate node components render against the baseline they were
+ * Tailwind is imported WHOLE, preflight included — the same thing the upstream
+ * editor does, so its Plate node components render against the baseline they were
  * written for. Nothing leaks: build/scope-editor-css.mjs re-roots every rule in
- * this stylesheet under `.rl-editor-scope` after Tailwind has generated it, and
+ * this stylesheet under `.rte-scope` after Tailwind has generated it, and
  * marks the editor's declarations `!important` wherever Bootstrap uses
  * `!important` on a colliding class name.
  *
  * Everything Radix portals to document.body is rendered into a container that
- * also carries `rl-editor-scope` (lib/portal-container.ts), so that one scope
+ * also carries `rte-scope` (lib/portal-container.ts), so that one scope
  * covers menus, tooltips and dialogs too.
  */
 /**
@@ -102,7 +102,7 @@
  * `body { color: #212529 }` — a dark grey that reads as washed-out next to the
  * near-black a report should be typed in.
  */
-.rl-editor-scope {
+.rte-scope {
   color: var(--foreground);
 }
 
@@ -115,7 +115,7 @@
  * opened far above the viewport, invisible. Leaving it static keeps the popper
  * measuring against the viewport, where its trigger is.
  */
-.rl-editor-portal {
+.rte-portal {
   position: static;
 }
 
@@ -137,7 +137,7 @@
  *
  * Element defaults inside the editor come from the scoped preflight imported
  * above, and everything on top of them from the Plate node components' own
- * Tailwind classes — exactly as in RadioLens. Adding rules here is how the two
+ * Tailwind classes — exactly as in the upstream editor. Adding rules here is how the two
  * drift apart: a hand-written `ul { list-style: disc }`, for instance, silently
  * overrides ListElement's `list-disc [&_ul]:list-[circle] [&_ul_ul]:list-[square]`
  * and changes the markers on nested lists.

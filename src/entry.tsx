@@ -6,7 +6,7 @@
  * editor's only job is to keep a hidden <textarea> filled with HTML, exactly
  * where Summernote used to put it.
  */
-import { RadiolensEditor, type PasteMode, type RadiolensEditorHandle } from "@/RadiolensEditor";
+import { RichTextEdit, type PasteMode, type RichTextEditHandle } from "@/RichTextEdit";
 import type { Value } from "platejs";
 import React, { createRef } from "react";
 import { createRoot, type Root } from "react-dom/client";
@@ -39,7 +39,7 @@ export interface MountOptions {
 
 interface Instance {
   root: Root;
-  handle: React.RefObject<RadiolensEditorHandle | null>;
+  handle: React.RefObject<RichTextEditHandle | null>;
   container: Element;
   form: HTMLFormElement | null;
   onSubmit?: (e: Event) => void;
@@ -58,21 +58,21 @@ function csrf(): string | undefined {
 function mount(selector: string | Element, options: MountOptions) {
   const container = resolve(selector as string);
   if (!container) {
-    console.error("[RadiolensEditor] mount target not found:", selector);
+    console.error("[RichTextEdit] mount target not found:", selector);
     return null;
   }
   if (instances.has(container)) return instances.get(container)!.handle;
 
   const textarea = resolve(options.textarea as string) as HTMLTextAreaElement | null;
   if (!textarea) {
-    console.error("[RadiolensEditor] textarea not found:", options.textarea);
+    console.error("[RichTextEdit] textarea not found:", options.textarea);
     return null;
   }
 
   const format: StorageFormat = options.format ?? "html";
   const stored = textarea.value || "";
 
-  const handle = createRef<RadiolensEditorHandle>();
+  const handle = createRef<RichTextEditHandle>();
   const root = createRoot(container);
 
   // Latest HTML from the debounced publish, so onChange can report both forms
@@ -80,7 +80,7 @@ function mount(selector: string | Element, options: MountOptions) {
   let latestHtml = "";
 
   root.render(
-    <RadiolensEditor
+    <RichTextEdit
       ref={handle}
       initialHtml={format === "html" ? stored : undefined}
       initialValue={format === "json" ? stored : undefined}
@@ -167,7 +167,7 @@ const api = { mount, destroy, getHtml, setHtml, getValue, setValue };
 
 // Guarded so importing the package during SSR does not throw.
 if (typeof window !== "undefined") {
-  (window as any).RadiolensEditor = api;
+  (window as any).RichTextEdit = api;
 }
 
 export default api;
