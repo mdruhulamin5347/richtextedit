@@ -1,0 +1,144 @@
+/**
+ * Editor styles.
+ *
+ * Tailwind is imported WHOLE, preflight included — the same thing RadioLens
+ * does, so its Plate node components render against the baseline they were
+ * written for. Nothing leaks: build/scope-editor-css.mjs re-roots every rule in
+ * this stylesheet under `.rl-editor-scope` after Tailwind has generated it, and
+ * marks the editor's declarations `!important` wherever Bootstrap uses
+ * `!important` on a colliding class name.
+ *
+ * Everything Radix portals to document.body is rendered into a container that
+ * also carries `rl-editor-scope` (lib/portal-container.ts), so that one scope
+ * covers menus, tooltips and dialogs too.
+ */
+/**
+ * `source(none)` turns OFF Tailwind's automatic scan of the whole project and
+ * leaves only the explicit `@source` below — every file that renders into the
+ * scope is a .ts/.tsx under this directory.
+ *
+ * Without it the utilities generated depended on which files happened to be on
+ * disk: a full checkout also scans public/our_assets/js/tailwindcss.js (the
+ * vendored Play CDN script) and emitted ~490 utilities nothing uses, 40 kB of
+ * them, while the Docker frontend stage — which copies only what vite reads —
+ * did not. Same commit, two different stylesheets, and a class could work
+ * locally and be missing in the image.
+ */
+@import "tailwindcss" source(none);
+
+@source "./**/*.{ts,tsx}";
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-highlight: var(--highlight);
+  --color-brand: var(--brand);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+/*
+ * Tokens MUST be defined at the root, not on the editor container.
+ *
+ * Radix renders every dropdown, popover and tooltip through a PORTAL attached
+ * to document.body — the Insert menu, Turn into, the colour pickers, the link
+ * and table menus. Those land outside the editor container, so tokens scoped to
+ * it resolved to nothing there and the menus rendered transparent with
+ * invisible text.
+ *
+ * Defining them here is safe: a custom property styles nothing on its own, it
+ * only resolves where a `var()` asks for it, and nothing outside this editor
+ * does. Verified against the admin stylesheets — none of these names is
+ * defined there, so nothing is being overridden.
+ *
+ * Light values only: the admin panel has no dark mode and reports print white.
+ */
+:root {
+  --radius: 0.625rem;
+  --background: hsl(0, 0%, 100%);
+  --foreground: hsl(0, 0%, 4%);
+  --card: hsl(0, 0%, 100%);
+  --card-foreground: hsl(0, 0%, 4%);
+  --popover: hsl(0, 0%, 100%);
+  --popover-foreground: hsl(0, 0%, 4%);
+  --primary: hsl(0, 0%, 9%);
+  --primary-foreground: hsl(0, 0%, 98%);
+  --secondary: hsl(0, 0%, 96%);
+  --secondary-foreground: hsl(0, 0%, 9%);
+  --muted: hsl(0, 0%, 96%);
+  --muted-foreground: hsl(0, 0%, 45%);
+  --accent: hsl(0, 0%, 96%);
+  --accent-foreground: hsl(0, 0%, 9%);
+  --destructive: hsl(357, 100%, 45%);
+  --border: hsl(0, 0%, 90%);
+  --input: hsl(0, 0%, 90%);
+  --ring: hsl(0, 0%, 63%);
+  --highlight: hsl(50, 98%, 64%);
+  --brand: hsl(217, 91%, 60%);
+}
+
+/*
+ * The editor's own text colour.
+ *
+ * Nothing else sets one, so every character inherited Bootstrap's
+ * `body { color: #212529 }` — a dark grey that reads as washed-out next to the
+ * near-black a report should be typed in.
+ */
+.rl-editor-scope {
+  color: var(--foreground);
+}
+
+/*
+ * The portal host must NOT be positioned.
+ *
+ * It is an empty div at the END of <body>, so making it `position: relative`
+ * turned it into the containing block for Radix's absolutely positioned popper
+ * wrapper: every menu was then offset by the height of the whole page and
+ * opened far above the viewport, invisible. Leaving it static keeps the popper
+ * measuring against the viewport, where its trigger is.
+ */
+.rl-editor-portal {
+  position: static;
+}
+
+/*
+ * Lift the portalled menus above the admin chrome.
+ *
+ * Radix content carries Tailwind's `z-50`, but that is z-index 50 and this
+ * admin panel stacks its own furniture far higher — the sidebar sits at 1000
+ * and there is an overlay at 20000. At z-50 the Insert / Turn into / colour /
+ * link / table menus opened UNDERNEATH all of it. Applied to the popper
+ * wrapper, which is the positioned element the browser actually stacks.
+ */
+[data-radix-popper-content-wrapper] {
+  z-index: 20050 !important;
+}
+
+/*
+ * NOTHING ELSE BELONGS IN THIS FILE.
+ *
+ * Element defaults inside the editor come from the scoped preflight imported
+ * above, and everything on top of them from the Plate node components' own
+ * Tailwind classes — exactly as in RadioLens. Adding rules here is how the two
+ * drift apart: a hand-written `ul { list-style: disc }`, for instance, silently
+ * overrides ListElement's `list-disc [&_ul]:list-[circle] [&_ul_ul]:list-[square]`
+ * and changes the markers on nested lists.
+ */

@@ -1,0 +1,96 @@
+{
+    "name": "@radiolens/editor",
+    "version": "0.1.0",
+    "description": "RadioLens rich text editor (Plate) with HTML and JSON storage.",
+    "private": true,
+    "type": "module",
+    "packageManager": "pnpm@10.17.0",
+    "main": "./dist/index.js",
+    "module": "./dist/index.js",
+    "types": "./dist/types/index.d.ts",
+    "exports": {
+        ".": {
+            "types": "./dist/types/index.d.ts",
+            "import": "./dist/index.js"
+        },
+        "./style.css": "./dist/style.css",
+        "./standalone": "./dist/standalone/radiolens-editor.iife.js",
+        "./standalone.css": "./dist/standalone/radiolens-editor.css"
+    },
+    "files": [
+        "dist"
+    ],
+    "sideEffects": [
+        "*.css",
+        "./dist/standalone/*"
+    ],
+    "scripts": {
+        "build": "pnpm run build:lib && pnpm run build:standalone && pnpm run build:types",
+        "build:lib": "vite build",
+        "build:standalone": "vite build --config vite.standalone.config.ts",
+        "build:types": "tsc -p tsconfig.build.json && node build/resolve-type-aliases.mjs",
+        "typecheck": "tsc --noEmit",
+        "test:js": "vitest run",
+        "test:browser": "node tests/browser/resize.mjs && node tests/browser/ragged-row-resize.mjs && node tests/browser/borders.mjs && node tests/browser/colwidths.mjs && node tests/browser/pastefit.mjs && node tests/browser/responsive.mjs && node tests/browser/table-fidelity.mjs && node tests/browser/table-border-design.mjs && node tests/browser/table-padding.mjs && node tests/browser/table-row-spacing.mjs && node tests/browser/font-size-fidelity.mjs && node tests/browser/font-size-control.mjs && node tests/browser/table-gridlines.mjs && node tests/browser/plain-text-paste.mjs && node tests/browser/centred-table-alignment.mjs && node tests/browser/table-selection.mjs && node tests/browser/click-to-type.mjs && node tests/browser/blank-line-height.mjs && node tests/browser/line-gap.mjs && node tests/browser/toolbar.mjs && node tests/browser/tab-at-cursor.mjs && node tests/browser/picture-paste.mjs"
+    },
+    "peerDependencies": {
+        "react": "^18.3.0",
+        "react-dom": "^18.3.0"
+    },
+    "devDependencies": {
+        "@tailwindcss/vite": "^4.1.0",
+        "@types/lodash": "^4.17.0",
+        "@types/react": "^18.3.0",
+        "@types/react-dom": "^18.3.0",
+        "@vitejs/plugin-react": "^4.3.4",
+        "jsdom": "^30.0.1",
+        "playwright": "^1.62.1",
+        "postcss": "^8.5.26",
+        "react": "18.3.1",
+        "react-dom": "18.3.1",
+        "tailwindcss": "^4.1.0",
+        "typescript": "^5.7.0",
+        "vite": "^6.0.0",
+        "vitest": "^4.1.11"
+    },
+    "dependencies": {
+        "@platejs/basic-nodes": "52.3.10",
+        "@platejs/basic-styles": "52.3.10",
+        "@platejs/caption": "52.3.10",
+        "@platejs/dnd": "52.3.16",
+        "@platejs/docx": "52.3.10",
+        "@platejs/floating": "52.3.10",
+        "@platejs/indent": "52.3.10",
+        "@platejs/juice": "52.3.10",
+        "@platejs/link": "52.3.17",
+        "@platejs/list": "52.3.10",
+        "@platejs/list-classic": "52.3.10",
+        "@platejs/media": "52.3.10",
+        "@platejs/resizable": "52.3.10",
+        "@platejs/selection": "52.3.10",
+        "@platejs/table": "52.3.20",
+        "@radix-ui/react-alert-dialog": "1.1.15",
+        "@radix-ui/react-checkbox": "1.3.3",
+        "@radix-ui/react-dropdown-menu": "2.1.16",
+        "@radix-ui/react-popover": "1.1.15",
+        "@radix-ui/react-separator": "1.1.8",
+        "@radix-ui/react-slot": "1.2.4",
+        "@radix-ui/react-toolbar": "1.1.11",
+        "@radix-ui/react-tooltip": "1.2.8",
+        "@udecode/cn": "52.3.4",
+        "class-variance-authority": "0.7.1",
+        "clsx": "2.1.1",
+        "lodash": "4.18.1",
+        "lucide-react": "0.482.0",
+        "mammoth": "^1.12.2",
+        "platejs": "52.3.21",
+        "sonner": "2.0.7",
+        "tailwind-merge": "3.5.0",
+        "use-file-picker": "2.1.2"
+    },
+    "pnpm": {
+        "overrides": {
+            "@radix-ui/react-slot": "1.2.4"
+        }
+    }
+}
