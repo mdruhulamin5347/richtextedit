@@ -21,7 +21,7 @@ import {
   lineGapToCssRatio,
   naturalLineHeight,
 } from "@/lib/line-gap";
-import { inlineWordLineGap, isOfficeClipboard } from "@/lib/word-line-gap";
+import { inlineLibreOfficeCellLineGap, inlineWordLineGap, isOfficeClipboard } from "@/lib/word-line-gap";
 
 /** Calibri's true natural line, from its own metrics: 2500/2048 units per em. */
 const CALIBRI = 1.2207;
@@ -254,5 +254,137 @@ p.MsoNormal {margin:0cm; font-size:11.0pt; font-family:"Calibri",sans-serif;}
     const twice = paste(once).html;
     const ratios = (h: string) => h.match(/line-height: [\d.]+/g);
     expect(ratios(twice)).toEqual(ratios(once));
+  });
+});
+
+/**
+ * A table copied out of LibreOffice, whose line gap only the RTF states.
+ *
+ * Its HTML writer leaves the spacing off every paragraph in a cell — a single-,
+ * 1.5- and double-spaced table copy as byte-identical HTML — and Juice then
+ * inlines the document's `p { line-height: 115% }` there. The RTF states each
+ * one (`\intbl\sl480\slmult1`). Cut from LibreOffice's real clipboard (UNO);
+ * what that gap draws as in a browser is measured in
+ * tests/browser/libreoffice-table-line-gap.mjs.
+ */
+describe("a LibreOffice table's line gap, from its RTF", () => {
+  const LIBRE_OFFICE_TABLE = `<!DOCTYPE html><html><head><meta http-equiv="content-type" content="text/html; charset=utf-8"/>
+<meta name="generator" content="LibreOffice 24.2.7.2 (Linux)"/>
+<style type="text/css">
+td p { color: #000000; text-align: left; orphans: 0; widows: 0; margin-bottom: 0in; direction: ltr; background: transparent }
+td p.western { font-family: "Liberation Serif", serif; font-size: 12pt; so-language: en-US }
+p { color: #000000; line-height: 115%; text-align: left; orphans: 2; widows: 2; margin-bottom: 0.1in; direction: ltr; background: transparent }
+p.western { font-family: "Liberation Serif", serif; font-size: 12pt; so-language: en-US }
+</style></head>
+<body lang="en-US" text="#000000" dir="ltr"><p class="western" align="left" style="line-height: 100%; margin-bottom: 0in">
+Before table</p>
+<table width="100%" cellpadding="4" cellspacing="0">
+\t<col width="128*"/>
+\t<col width="128*"/>
+\t<tr valign="top">
+\t\t<td width="50%" style="border: 1px solid #000000; padding: 0.04in"><p class="western" align="left">
+\t\t\t<font face="Calibri, serif"><font size="2" style="font-size: 11pt">Age
+\t\t\t:</font></font></p>
+\t\t</td>
+\t\t<td width="50%" style="border: 1px solid #000000; padding: 0.04in"><p class="western" align="left">
+\t\t\t<font face="Calibri, serif"><font size="2" style="font-size: 11pt">45
+\t\t\tYears</font></font></p>
+\t\t</td>
+\t</tr>
+</table>
+<p class="western" align="left" style="line-height: 100%; margin-bottom: 0in">
+After table</p>
+</body></html>`;
+
+  /** LibreOffice's RTF for the same selection, each cell at `spacing`. */
+  const rtfWith = (spacing: string) =>
+    String.raw`{\rtf1\ansi\deff3{\fonttbl{\f3\froman Liberation Serif;}{\f4\froman Calibri;}}` +
+    String.raw`{\stylesheet{\s0 Normal;}{\s16\sbasedon0 Table Contents;}}` +
+    String.raw`\pard\plain \s0\ql{\loch Before table}\par\trowd\cellx4759\cellx9578` +
+    String.raw`\pard\plain \s16\intbl${spacing}{\f4\fs22 Age :}\cell` +
+    String.raw`\pard\plain \s16\intbl${spacing}{\f4\fs22 45 Years}\cell\row` +
+    String.raw`\pard\plain \s0\ql{\loch After table}\par}`;
+
+  /** An RTF that matches nothing — the paste as it was before this pass. */
+  const UNMATCHED = String.raw`{\rtf1\ansi\pard Something else entirely\par}`;
+
+  function paste(html: string, rtf: string) {
+    const editor = createPlateEditor({ plugins: buildPlugins("clean") });
+    editor.tf.setValue([{ type: "p", children: [{ text: "" }] }] as never);
+    editor.tf.select({ anchor: { path: [0, 0], offset: 0 }, focus: { path: [0, 0], offset: 0 } });
+    editor.tf.insertData({
+      types: ["text/html", "text/rtf", "text/plain"],
+      getData: (t: string) => (t === "text/html" ? html : t === "text/rtf" ? rtf : ""),
+      files: [],
+      items: [],
+    } as unknown as DataTransfer);
+    const value = editor.children as any[];
+    const table = value.find((n) => n.type === "table");
+    return {
+      cells: table.children[0].children.map((cell: any) => cell.children[0].lineHeight),
+      outside: value.filter((n) => n.type !== "table").map((n) => n.lineHeight),
+      html: plateValueToHtml(value as never),
+    };
+  }
+
+  const gap = (lines: number) => lineGapToCssRatio(lines, FALLBACK_NATURAL_LINE_HEIGHT);
+
+  it("pastes a double-spaced table double-spaced — not at the document's default 115%", () => {
+    expect(paste(LIBRE_OFFICE_TABLE, rtfWith(String.raw`\sl480\slmult1`)).cells).toEqual([gap(2), gap(2)]);
+  });
+
+  it("pastes 1.5 and single as 1.5 and single", () => {
+    expect(paste(LIBRE_OFFICE_TABLE, rtfWith(String.raw`\sl360\slmult1`)).cells).toEqual([gap(1.5), gap(1.5)]);
+    expect(paste(LIBRE_OFFICE_TABLE, rtfWith(String.raw`\sl240\slmult1`)).cells).toEqual([gap(1), gap(1)]);
+  });
+
+  it("reads a cell that states no spacing as single, which is how LibreOffice draws it", () => {
+    expect(paste(LIBRE_OFFICE_TABLE, rtfWith("")).cells).toEqual([gap(1), gap(1)]);
+  });
+
+  it("keeps Exactly at its height, whatever the font", () => {
+    // 14pt, stored as the ratio that is 14pt against the cell's 11pt text.
+    expect(paste(LIBRE_OFFICE_TABLE, rtfWith(String.raw`\sl-280\slmult0`)).cells[0]).toBeCloseTo(14 / 11, 4);
+  });
+
+  it("draws At least at that height, or single where the text is taller", () => {
+    // 18pt against 11pt text; then 10pt, which 11pt text is already taller than.
+    expect(paste(LIBRE_OFFICE_TABLE, rtfWith(String.raw`\sl360\slmult0`)).cells[0]).toBeCloseTo(18 / 11, 4);
+    expect(paste(LIBRE_OFFICE_TABLE, rtfWith(String.raw`\sl200\slmult0`)).cells[0]).toBe(gap(1));
+  });
+
+  it("leaves the paragraphs outside the table exactly as they were", () => {
+    const before = paste(LIBRE_OFFICE_TABLE, UNMATCHED).outside;
+    expect(paste(LIBRE_OFFICE_TABLE, rtfWith(String.raw`\sl480\slmult1`)).outside).toEqual(before);
+  });
+
+  it("leaves a cell the RTF cannot be matched to exactly as it was", () => {
+    const before = paste(LIBRE_OFFICE_TABLE, UNMATCHED).cells;
+    const other = rtfWith(String.raw`\sl480\slmult1`).replace("Age :", "Weight :").replace("45 Years", "70 kg");
+    expect(paste(LIBRE_OFFICE_TABLE, other).cells).toEqual(before);
+  });
+
+  it("does not touch a Word paste, whose HTML already states the gap", () => {
+    const wordTable =
+      `<html xmlns:w="urn:schemas-microsoft-com:office:word"><head><style><!--
+p.MsoNormal {margin:0cm; font-size:11.0pt; font-family:"Calibri",sans-serif;}
+--></style></head><body><table class=MsoTableGrid border=1 cellspacing=0 style='border-collapse:collapse'><tr>` +
+      `<td style='padding:0cm 5.4pt'><p class=MsoNormal style='line-height:150%'><span style='font-size:11.0pt'>Age :</span></p></td>` +
+      `<td style='padding:0cm 5.4pt'><p class=MsoNormal style='line-height:150%'><span style='font-size:11.0pt'>45 Years</span></p></td>` +
+      `</tr></table></body></html>`;
+    // Word sends RTF too; one stating a different gap must not win.
+    expect(paste(wordTable, rtfWith(String.raw`\sl480\slmult1`)).cells).toEqual([gap(1.5), gap(1.5)]);
+  });
+
+  it("is stable across a save and reopen — never multiplied twice", () => {
+    const once = paste(LIBRE_OFFICE_TABLE, rtfWith(String.raw`\sl480\slmult1`)).html;
+    const reopened = paste(once, "").html;
+    const ratios = (h: string) => h.match(/line-height: [\d.]+/g);
+    expect(ratios(reopened)).toEqual(ratios(once));
+  });
+
+  it("returns the very same string when there is no RTF to read", () => {
+    expect(inlineLibreOfficeCellLineGap(LIBRE_OFFICE_TABLE, "")).toBe(LIBRE_OFFICE_TABLE);
+    expect(inlineLibreOfficeCellLineGap(LIBRE_OFFICE_TABLE, null)).toBe(LIBRE_OFFICE_TABLE);
   });
 });

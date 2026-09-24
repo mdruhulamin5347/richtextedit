@@ -2,7 +2,8 @@
 
 import { createSlatePlugin, KEYS, type TElement } from "platejs";
 
-import { extractBlockSpacing } from "@/lib/table-widths";
+import { extractBlockSpacing, extractDocumentSpacing, markDocumentSpacing } from "@/lib/table-widths";
+import { isLibreOfficeClipboard } from "@/lib/word-line-gap";
 
 /**
  * Carry a pasted paragraph's space-before / space-after onto the node — inside
@@ -19,6 +20,13 @@ import { extractBlockSpacing } from "@/lib/table-widths";
  * what keeps the editor's own paragraph spacing — settled ground — exactly
  * where it is. See the web app's editor paste-scope notes in ai/memory/.
  *
+ * The one exception is a LibreOffice paste, whose paragraphs are laid out line
+ * by line and carry the document's spacing: each one is marked on the way in
+ * (`markDocumentSpacing`, after Juice has inlined its margins; the check reads
+ * the RAW clipboard, whose generator `<meta>` the docx cleaner removes) and
+ * read back by `extractDocumentSpacing` — on paste and on every reopen, since
+ * the mark is saved. Nothing else carries the mark.
+ *
  * INJECTED into the paragraph plugin rather than configured on it: DocxPlugin
  * `override`s `p`'s deserializer parse outright with its own (the one that
  * reads Word's list indent), and an override replaces, so anything configured
@@ -31,12 +39,18 @@ export const BlockSpacingPlugin = createSlatePlugin({
   key: "blockSpacing",
   inject: {
     plugins: {
+      [KEYS.html]: {
+        parser: {
+          transformData: ({ data, dataTransfer }: { data: string; dataTransfer: DataTransfer }) =>
+            isLibreOfficeClipboard(dataTransfer.getData("text/html")) ? markDocumentSpacing(data) : data,
+        },
+      },
       [KEYS.p]: {
         parsers: {
           html: {
             deserializer: {
               parse: ({ element }: { element: HTMLElement }) =>
-                (extractBlockSpacing(element) ?? {}) as Partial<TElement>,
+                (extractBlockSpacing(element) ?? extractDocumentSpacing(element) ?? {}) as Partial<TElement>,
             },
           },
         },

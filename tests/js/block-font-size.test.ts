@@ -125,8 +125,8 @@ describe("a line with text is the size of its text", () => {
 
 describe("what it does not touch", () => {
   it("a line of whitespace is layout, not a blank line", () => {
-    // Tabs and space runs set a report's columns, and tab-size is counted in
-    // character widths — resizing one would move what it aligns.
+    // Tabs and space runs set a report's columns, and a space is as wide as
+    // the size it is set in — resizing one would move what it aligns.
     const tabs = '<p><span style="white-space: pre">\t\t</span></p>';
     expect(roundTrip(TEN + tabs).value[1].fontSize).toBeUndefined();
   });

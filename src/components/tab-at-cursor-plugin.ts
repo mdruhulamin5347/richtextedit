@@ -29,8 +29,8 @@ import { createSlatePlugin, KEYS } from "platejs";
  *
  * The inserted character is a real `\t`. It survives the round trip — the
  * serializer wraps it in `white-space: pre` (see lib/whitespace.ts) and the
- * editable carries `[tab-size:8]`, the same stop the print pages and the PDF
- * use — so what is typed here is what prints.
+ * editable carries `[tab-size:0.5in]`, Word's stop and the one the print page
+ * states too — so what is typed here is what prints.
  */
 export const TabAtCursorPlugin = createSlatePlugin({
   key: "tabAtCursor",

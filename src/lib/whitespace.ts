@@ -1,3 +1,5 @@
+import { isDocxContent } from "@platejs/docx";
+
 /**
  * Whitespace that a report LAYS OUT with.
  *
@@ -83,16 +85,25 @@ const PRESERVING = new Set(["pre", "pre-wrap", "pre-line", "break-spaces"]);
  * `atBlockStart` / `atBlockEnd` say whether this leaf is the first / last child
  * of its block. A leaf that follows another one starts mid-line, where a space
  * is safe: `<strong>Result</strong> : Negative` must not gain an `&nbsp;`.
+ *
+ * `afterSpace` says the leaf before this one ended in a space written as a
+ * plain space — so this one's first space would be swallowed by it. A run of
+ * spaces split across leaves (`Fundal ` + a bold ` ` + ` Ant`) was three plain
+ * spaces in a row on the page, and printed as one.
  */
 export function serializeWhitespace(
   escaped: string,
-  { atBlockStart = true, atBlockEnd = true }: { atBlockStart?: boolean; atBlockEnd?: boolean } = {}
+  {
+    atBlockStart = true,
+    atBlockEnd = true,
+    afterSpace = false,
+  }: { atBlockStart?: boolean; atBlockEnd?: boolean; afterSpace?: boolean } = {}
 ): string {
   if (!/[ \t\u00A0]/.test(escaped)) return escaped;
 
   let out = "";
   /** Would a space written here be swallowed by the one before it? */
-  let afterKeptSpace = false;
+  let afterKeptSpace = afterSpace;
 
   for (let i = 0; i < escaped.length; i++) {
     const char = escaped[i];
@@ -205,6 +216,177 @@ export function dropTableMarkupWhitespace(html: string): string {
 }
 
 /**
+ * What `protectWhitespace` needs to know on the paste path.
+ *
+ * Plate's docx cleaner runs whenever the clipboard carries RTF — LibreOffice's
+ * always does — or the HTML is Word's, and it deletes every element whose
+ * `innerHTML.trim()` is empty. A `white-space: pre` span holding only tabs is
+ * such an element, so `BPD<TAB><TAB><TAB><TAB>89 mm` pasted out of LibreOffice
+ * as `BPD89 mm`: the one thing protecting the tabs was what removed them. When
+ * that cleaner is going to run, a tab run is written the way Word writes one
+ * instead — an `mso-tab-count` span, which the same cleaner turns back into
+ * tabs inside the `pre-wrap` wrapper it puts round everything.
+ */
+export interface ClipboardWhitespace {
+  /** The clipboard carries `text/rtf`, which alone makes the docx cleaner run. */
+  hasRtf: boolean;
+  /**
+   * LibreOffice wrote the HTML. A word processor keeps every space as typed, and
+   * LibreOffice's HTML writer writes them as typed too — a run of spaces, not
+   * `&nbsp;` — so a line indented with spaces (`<53 spaces>No retro-placental…`)
+   * collapsed to nothing. And it wraps long source lines by turning a SPACE into
+   * a newline, and puts a newline of its own after a block's opening tag. See
+   * `normalizeLibreOfficeNewlines`.
+   */
+  libreOffice?: boolean;
+}
+
+/** Blocks whose inline content is a line of the document. */
+const TEXT_BLOCKS = "p, h1, h2, h3, h4, h5, h6, li, dt, dd, td, th";
+
+function textBlockOf(node: Node): Element | null {
+  return node.parentElement?.closest(TEXT_BLOCKS) ?? null;
+}
+
+/** Elements that hold blocks rather than being a line of text themselves. */
+const BLOCK_LEVEL: ReadonlySet<string> = new Set([
+  "P", "DIV", "TABLE", "THEAD", "TBODY", "TFOOT", "TR", "TD", "TH", "COLGROUP", "COL", "CAPTION",
+  "UL", "OL", "LI", "DL", "DT", "DD", "H1", "H2", "H3", "H4", "H5", "H6",
+  "BLOCKQUOTE", "PRE", "CENTER", "HR", "SECTION", "ARTICLE", "HEADER", "FOOTER",
+]);
+
+/** A cell or list item that holds paragraphs: its own whitespace is markup. */
+function holdsBlocks(element: Element): boolean {
+  return Array.from(element.children).some((child) => BLOCK_LEVEL.has(child.tagName));
+}
+
+/**
+ * How many tabs LibreOffice indents this block's source lines by.
+ *
+ * Its HTML writer indents by nesting: nothing for a top-level paragraph,
+ * `\t\t\t` for one inside a table cell. A wrapped line inside the block
+ * carries that indentation after its newline — `Inv. Date:\n\t\t\t13-10-2025`
+ * is `Inv. Date: 13-10-2025` — and it is not text. A cell states its own depth
+ * on the line it closes on (`</p>\n\t\t</td>`), one less than its content's;
+ * failing that, the block's first line says it (`<p>\n\t\t\t<font>`).
+ */
+function libreOfficeIndent(block: Element, texts: Text[]): number {
+  for (let ancestor = block.parentElement; ancestor && ancestor.tagName !== "BODY"; ancestor = ancestor.parentElement) {
+    const closing = ancestor.lastChild;
+    const match = closing instanceof Text ? /\r?\n(\t*)$/.exec(closing.data) : null;
+    if (match) return match[1].length + 1;
+  }
+  const first = texts.find((text) => text.data);
+  const match = first ? /^\r?\n(\t*)/.exec(first.data) : null;
+  return match ? match[1].length : 0;
+}
+
+/**
+ * LibreOffice's newlines, put back to what they stand for.
+ *
+ * Its HTML writer adds a newline (and the block's indentation) of its own right
+ * after a block's opening tag and before its closing one — formatting, not text
+ * — and breaks every long source line by REPLACING a space with a newline plus
+ * that same indentation: `Number \t\t\tSingle` at the top level is written
+ * `Number\n\t\t\tSingle` (the tabs are the document's), while in a cell
+ * `Inv. Date: 13-10-2025` is written `Inv. Date:\n\t\t\t13-10-2025` (the tabs
+ * are indentation). So the formatting goes, each wrap becomes the space it
+ * replaced, and only tabs past the block's indentation stay — after which a
+ * block has no newline left for Plate's cleaners to collapse spaces around.
+ *
+ * A cell or list item that holds paragraphs is left alone: the whitespace
+ * between its paragraphs is markup, and Plate already drops it.
+ */
+function normalizeLibreOfficeNewlines(body: HTMLElement): void {
+  for (const block of Array.from(body.querySelectorAll(TEXT_BLOCKS))) {
+    if (holdsBlocks(block)) continue;
+    const texts = textNodesIn(block).filter((text) => textBlockOf(text) === block && !inPreservingContext(text));
+    if (!texts.some((text) => /[\r\n]/.test(text.data))) continue;
+
+    const indent = libreOfficeIndent(block, texts);
+    const leadingBreak = new RegExp(`^(?:\\r?\\n\\t{0,${indent}})+`);
+    const wrap = new RegExp(`\\r?\\n\\t{0,${indent}}`, "g");
+
+    for (const text of texts) {
+      text.data = text.data.replace(leadingBreak, "");
+      if (text.data) break;
+    }
+    for (const text of [...texts].reverse()) {
+      text.data = text.data.replace(/(?:\r?\n\t*)+$/, "");
+      if (text.data) break;
+    }
+    for (const text of texts) {
+      if (/[\r\n]/.test(text.data)) text.data = text.data.replace(wrap, " ");
+    }
+
+    // A line indented with spaces is written with the spaces OUTSIDE the run's
+    // `<font face>` — `<h3>     …<font face="Calibri">No retro-placental` — so
+    // they took the paragraph's style-block font (Times New Roman, a wider
+    // space) and pushed the text ~20px past where the document has it. They
+    // belong to the run they indent.
+    const leading = block.firstChild;
+    const run = leading?.nextSibling;
+    if (leading instanceof Text && !leading.data.trim() && leading.data && run instanceof HTMLElement) {
+      const firstText = textNodesIn(run).find((text) => text.data);
+      if (firstText) {
+        firstText.data = leading.data + firstText.data;
+        leading.remove();
+      }
+    }
+  }
+}
+
+function textNodesIn(root: Node): Text[] {
+  const walker = (root.ownerDocument ?? (root as Document)).createTreeWalker(root, NodeFilter.SHOW_TEXT);
+  const texts: Text[] = [];
+  for (let node = walker.nextNode(); node; node = walker.nextNode()) texts.push(node as Text);
+  return texts;
+}
+
+/**
+ * Whether a run of plain spaces in a LibreOffice block is the document's own
+ * spacing: two or more of them, a line's leading indent, or the only content
+ * of an inline element (which the docx cleaner would delete as empty).
+ */
+function isLibreOfficeSpacing(text: Text, start: number, end: number): boolean {
+  const block = textBlockOf(text);
+  if (!block || holdsBlocks(block)) return false;
+  const texts = textNodesIn(block).filter((node) => textBlockOf(node) === block);
+  const before = texts.slice(0, texts.indexOf(text)).map((node) => node.data).join("") + text.data.slice(0, start);
+  const after = text.data.slice(end) + texts.slice(texts.indexOf(text) + 1).map((node) => node.data).join("");
+  if (!after.trim()) return false; // trailing: nothing to push along
+  if (!before.trim()) return true; // leading: the line's indent
+  if (end - start >= 2) return true;
+  return !text.data.trim() && text.parentElement !== block;
+}
+
+function preSpan(doc: Document, run: string): HTMLElement {
+  const span = doc.createElement("span");
+  span.setAttribute("style", PRE);
+  span.textContent = run;
+  return span;
+}
+
+/**
+ * A run as Word would write it: each group of tabs an `mso-tab-count` span, the
+ * spaces between left as text for the cleaner's `pre-wrap` wrapper to keep.
+ */
+function asDocxTabs(doc: Document, run: string, soleContent: boolean): Node[] {
+  return (run.match(/\t+| +/g) ?? []).map((part) => {
+    if (part[0] !== "\t") {
+      // The cleaner's `pre-wrap` wrapper keeps spaces as they are — unless they
+      // are all an element holds, when it deletes the element. Then they
+      // alternate with `&nbsp;` (it also deletes a node of nothing but those).
+      return doc.createTextNode(soleContent ? part.replace(/ /g, (_, i: number) => (i % 2 ? " " : NBSP)) : part);
+    }
+    const span = doc.createElement("span");
+    span.setAttribute("style", `mso-tab-count:${part.length}`);
+    span.textContent = NBSP;
+    return span;
+  });
+}
+
+/**
  * The same HTML with every run of whitespace the document LAID OUT with wrapped
  * in a `white-space: pre` span, so Plate's deserializer leaves it alone.
  *
@@ -218,8 +400,12 @@ export function dropTableMarkupWhitespace(html: string): string {
  * `inlineLegacyAlignment` returns it: Word ships its formatting as a `<style>`
  * block that JuicePlugin inlines later, and returning the body alone would drop
  * every font, size and column width with it.
+ *
+ * `clipboard` is for the paste path only, where two more things are true — see
+ * `ClipboardWhitespace`. The load path and the Word-upload button leave it out
+ * and get exactly the behaviour above.
  */
-export function protectWhitespace(html: string): string {
+export function protectWhitespace(html: string, clipboard?: ClipboardWhitespace): string {
   // Markup whitespace inside a table goes first: it is not the report's, it is
   // not protectable, and left alone it breaks the table. See
   // `dropTableMarkupWhitespace` — a no-op, and byte-identical, for everything
@@ -228,10 +414,15 @@ export function protectWhitespace(html: string): string {
 
   // The entity forms count as well as the character: `&nbsp;` is how legacy
   // Summernote reports — the ones this is here for — write every one of theirs.
-  if (!source || !/[\t\u00A0]|&nbsp;|&#0*160;|&#x0*a0;/i.test(source)) return source;
+  // A LibreOffice paste has its space runs and newlines to see to as well.
+  const libreOffice = !!clipboard?.libreOffice;
+  if (!source || (!libreOffice && !/[\t\u00A0]|&nbsp;|&#0*160;|&#x0*a0;/i.test(source))) return source;
 
   const doc = new DOMParser().parseFromString(source, "text/html");
+  if (libreOffice) normalizeLibreOfficeNewlines(doc.body);
   const walker = doc.createTreeWalker(doc.body, NodeFilter.SHOW_TEXT);
+  const docxCleanerRuns = !!clipboard && (clipboard.hasRtf || isDocxContent(doc.body));
+
 
   const texts: Text[] = [];
   for (let node = walker.nextNode(); node; node = walker.nextNode()) {
@@ -240,7 +431,7 @@ export function protectWhitespace(html: string): string {
 
   for (const text of texts) {
     const value = text.data;
-    if (!/[\t\u00A0]/.test(value)) continue;
+    if (!libreOffice && !/[\t\u00A0]/.test(value)) continue;
     if (inPreservingContext(text)) continue;
 
     const pieces: Node[] = [];
@@ -251,15 +442,15 @@ export function protectWhitespace(html: string): string {
       const run = match[0];
       const start = match.index;
       const end = start + run.length;
-      if (!/[\t\u00A0]/.test(run)) continue;
+      const spacing = libreOffice && !/[\t\u00A0]/.test(run) && isLibreOfficeSpacing(text, start, end);
+      if (!/[\t\u00A0]/.test(run) && !spacing) continue;
       // Against a newline: source indentation, not the report's own spacing.
+      // (A LibreOffice block has none left by now; see normalizeLibreOfficeNewlines.)
       if (/[\n\r]/.test(value[start - 1] ?? "") || /[\n\r]/.test(value[end] ?? "")) continue;
 
       if (start > cursor) pieces.push(doc.createTextNode(value.slice(cursor, start)));
-      const span = doc.createElement("span");
-      span.setAttribute("style", PRE);
-      span.textContent = run;
-      pieces.push(span);
+      const soleContent = !(text.parentElement?.textContent ?? "").replace(/[ \t\u00A0]/g, "");
+      pieces.push(...(docxCleanerRuns && !run.includes(NBSP) ? asDocxTabs(doc, run, soleContent) : [preSpan(doc, run)]));
       cursor = end;
     }
 

@@ -12,16 +12,19 @@ export function ParagraphElement(props: PlateElementProps) {
   /**
    * The space the DOCUMENT puts above and below this paragraph.
    *
-   * Only a paragraph inside a table cell ever carries it — `extractBlockSpacing`
-   * reads it nowhere else — so the editor's own paragraph spacing outside
-   * tables is untouched by construction, and `m-0` below still decides it. An
-   * inline style outranks the class, which is what lets a row be as deep as the
-   * document set it.
+   * A paragraph inside a table cell carries it (`extractBlockSpacing`), and so
+   * does one a LibreOffice paste laid out line by line (`documentSpacing`, see
+   * `extractDocumentSpacing`): that one is spaced by the document INSTEAD of by
+   * the editor, so it drops `py-1` as well. Every other paragraph outside a
+   * table is untouched, and `m-0` below still decides it. An inline style
+   * outranks the class, which is what lets a row be as deep as the document
+   * set it.
    */
-  const { marginTop, marginBottom, indent } = props.element as {
+  const { marginTop, marginBottom, indent, documentSpacing } = props.element as {
     marginTop?: string;
     marginBottom?: string;
     indent?: number;
+    documentSpacing?: boolean;
   };
 
   const spacing = marginTop || marginBottom;
@@ -49,7 +52,8 @@ export function ParagraphElement(props: PlateElementProps) {
       // 16px gap under it that the printed report does not have. Both of those are
       // Bootstrap utility names as well, so both come out `!important` and win,
       // and neither says anything about `margin-left`.
-      className={cn("px-0 py-1", !spacing && (indent ? "my-0 me-0" : "m-0"))}
+      // `py-1` is dropped rather than overridden for the same reason `m-0` is.
+      className={cn("px-0", !documentSpacing && "py-1", !spacing && (indent ? "my-0 me-0" : "m-0"))}
       style={spacing ? { marginTop, marginBottom } : undefined}
     >
       {props.children}

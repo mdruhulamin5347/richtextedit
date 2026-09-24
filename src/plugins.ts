@@ -6,6 +6,7 @@ import { BlockFontSizePlugin } from "@/components/block-font-size-plugin";
 import { BlockSpacingPlugin } from "@/components/block-spacing-plugin";
 import { ClipboardPicturePlugin } from "@/components/clipboard-picture-plugin";
 import { DocxKit } from "@/components/docx-kit";
+import { FontFacePlugin, RtfParagraphFontPlugin } from "@/components/font-face-plugin";
 import { FontKit } from "@/components/font-kit";
 import { ImageSizePlugin } from "@/components/image-size-plugin";
 import { IndentKit } from "@/components/indent-kit";
@@ -24,6 +25,7 @@ import { TableKit } from "@/components/table-kit";
 import { WhitespacePlugin } from "@/components/whitespace-plugin";
 import { WordBorderBoxPlugin } from "@/components/word-border-box-plugin";
 import { WordLineGapPlugin } from "@/components/word-line-gap-plugin";
+import { WordTabPlugin } from "@/components/word-tab-plugin";
 import { WordTextboxPlugin } from "@/components/word-textbox-plugin";
 
 /**
@@ -75,6 +77,15 @@ export function buildPlugins(pasteMode: PasteMode = "clean") {
     // pointing at a `file:///` path once it has run is one of those, and its
     // bytes are in the RTF too. See lib/rtf-pictures.ts.
     RtfPicturePlugin,
+    // Early in the list too, so it runs AFTER DocxKit: a Word tab span the docx
+    // cleaner did not turn into tabs becomes one here, instead of a fixed run of
+    // `&nbsp;`. One Word tab, one editor tab. See lib/word-tabs.ts.
+    WordTabPlugin,
+    // Right after it, so it runs just BEFORE it: a LibreOffice line that names no
+    // font takes its RTF's, and the tab layout has to measure the text in the
+    // font it is drawn in. After DocxKit, so a style block's family is already
+    // inline and wins. See lib/font-face.ts.
+    RtfParagraphFontPlugin,
     ...BasicBlocksKit,
     ...BasicMarksKit,
     ...ListKit,
@@ -116,6 +127,10 @@ export function buildPlugins(pasteMode: PasteMode = "clean") {
     // alignment, which is stated in attributes, and it is why the rewrite has
     // to hand back the whole document rather than just the body.
     LegacyAlignmentPlugin,
+    // Beside it, and before the docx cleaner for the same reason: LibreOffice
+    // states a run's font as `<font face>`, which that cleaner turns into a
+    // `<span>` whose `face` nothing reads. See lib/font-face.ts.
+    FontFacePlugin,
     // Last of the clipboard passes: the alignment rewrite works on elements, so
     // it neither reads nor moves the text nodes this one wraps.
     WhitespacePlugin,

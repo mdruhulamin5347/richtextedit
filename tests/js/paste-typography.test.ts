@@ -131,7 +131,10 @@ describe("pasting from LibreOffice", () => {
   });
 
   it("carries it into the saved HTML, and onto the block so the line is as tall", () => {
-    expect(html).toContain('<p style="line-height: 1.2; font-size: 10pt">');
+    // Spaced by the document, as a LibreOffice line is — see extractDocumentSpacing.
+    expect(html).toContain(
+      '<p data-spacing="document" style="line-height: 1.2; margin-top: 0px; margin-bottom: 0px; font-size: 10pt">'
+    );
     expect(html).toContain("font-size: 10pt");
   });
 

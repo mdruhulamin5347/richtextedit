@@ -212,6 +212,9 @@ function elementPatch(
   for (const prop of ELEMENT_PROPS_TO_STRIP) {
     if (isCell && CELL_EXEMPT_PROPS.has(prop)) continue;
     if (inCell && IN_CELL_EXEMPT_PROPS.has(prop)) continue;
+    // A paragraph spaced by the document keeps its space above and below for
+    // the same reason, and the serializer writes it back out with its mark.
+    if ((node as { documentSpacing?: boolean }).documentSpacing && IN_CELL_EXEMPT_PROPS.has(prop)) continue;
     if (prop in node) patch[prop] = undefined;
   }
 

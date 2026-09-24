@@ -689,6 +689,62 @@ export function extractBlockSpacing(el: Element): BlockSpacing | undefined {
   return spacing.marginTop || spacing.marginBottom ? spacing : undefined;
 }
 
+/**
+ * Marks a paragraph OUTSIDE a table whose space above and below is the
+ * document's own rather than the editor's `py-1`. Written back out by the
+ * serializer, so the paragraph opens and prints the way it was pasted.
+ */
+export const DOCUMENT_SPACING_ATTRIBUTE = "data-spacing";
+
+/** Blocks a LibreOffice paste lays out as lines of the document. */
+const DOCUMENT_SPACING_BLOCKS = "p, h1, h2, h3, h4, h5, h6";
+
+/**
+ * The same HTML with every paragraph outside a table marked as spaced by the
+ * document — for a LibreOffice paste, whose HTML states each one's space above
+ * and below (`margin-bottom: 0in`, or its style block's `0.1in`).
+ *
+ * The editor spaces a paragraph with 4px of padding above and below and no
+ * margin. A document spaced line by line has none of that: the lines of a
+ * report's "Test platform" block stand 14.67px apart in LibreOffice and 20px
+ * here, and once their line gap was right, 24px. A heading is marked too — it
+ * becomes a paragraph later on (lib/office-tab-stops.ts), keeping its
+ * attributes. Returns the input untouched — the same string — when there is
+ * nothing to mark.
+ */
+export function markDocumentSpacing(html: string): string {
+  if (!html) return html;
+  const doc = new DOMParser().parseFromString(html, "text/html");
+  if (!doc.body) return html;
+
+  let changed = false;
+  doc.body.querySelectorAll<HTMLElement>(DOCUMENT_SPACING_BLOCKS).forEach((block) => {
+    if (block.closest("td, th, li")) return;
+    block.setAttribute(DOCUMENT_SPACING_ATTRIBUTE, "document");
+    changed = true;
+  });
+
+  return changed ? doc.body.innerHTML : html;
+}
+
+/**
+ * A paragraph spaced by the document, read off its element: the mark, and its
+ * margins — a stated zero included, which here is not "nothing stated" but
+ * "no space", in place of the editor's padding.
+ *
+ * Nothing but a LibreOffice paste carries the mark — no report saved before it
+ * does — so every other paragraph keeps the editor's own spacing exactly.
+ */
+export function extractDocumentSpacing(el: Element): (BlockSpacing & { documentSpacing: true }) | undefined {
+  if (el.getAttribute(DOCUMENT_SPACING_ATTRIBUTE) !== "document" || el.closest("td, th")) return undefined;
+  const style = (el as HTMLElement).style;
+  return {
+    documentSpacing: true,
+    marginTop: pxValue(parseLength(style?.getPropertyValue("margin-top")) ?? 0),
+    marginBottom: pxValue(parseLength(style?.getPropertyValue("margin-bottom")) ?? 0),
+  };
+}
+
 /* -------------------------------------------------------------------------
  * Cell alignment
  * ---------------------------------------------------------------------- */

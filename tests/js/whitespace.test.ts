@@ -202,3 +202,73 @@ describe("markup whitespace inside a table", () => {
     expect(dropTableMarkupWhitespace(clean)).toBe(clean);
   });
 });
+
+describe("a run of spaces split across leaves", () => {
+  it("keeps every space on the page, not just the first", () => {
+    // `Fundal   Ant`: three spaces, the middle one bold. Written as three plain
+    // spaces in a row they collapsed to one wherever the report was read.
+    const html = serialize([
+      { type: "p", children: [{ text: "Fundal " }, { text: " ", bold: true }, { text: " Ant" }] },
+    ]);
+    expect(html).toBe("<p>Fundal <strong>&nbsp;</strong> Ant</p>");
+  });
+
+  it("still leaves a single space between leaves alone", () => {
+    const html = serialize([{ type: "p", children: [{ text: "Result", bold: true }, { text: " : Negative" }] }]);
+    expect(html).toBe("<p><strong>Result</strong> : Negative</p>");
+  });
+});
+
+describe("a LibreOffice paste's whitespace", () => {
+  /** What LibreOffice's HTML writer produces, soft-wrap newlines and all. */
+  const lo = (body: string) =>
+    `<html><head><meta name="generator" content="LibreOffice 24.2.7.2 (Linux)"/></head><body>${body}</body></html>`;
+  const textsOf = (html: string) =>
+    Array.from(new DOMParser().parseFromString(html, "text/html").body.querySelectorAll("p, h3")).map(
+      (block) => block.textContent
+    );
+
+  it("turns a soft-wrap newline back into the space it replaced", () => {
+    const out = protectWhitespace(lo("<p><span>Cardiac\nActivity \tPresent</span></p>"), {
+      hasRtf: false,
+      libreOffice: true,
+    });
+    expect(textsOf(out)).toEqual(["Cardiac Activity \tPresent"]);
+  });
+
+  it("drops the newline it writes after a block's opening tag and before its closing one", () => {
+    const out = protectWhitespace(lo("<p>\n<span>USG Findings :</span>\n</p>"), { hasRtf: false, libreOffice: true });
+    expect(textsOf(out)).toEqual(["USG Findings :"]);
+  });
+
+  it("keeps a line's leading spaces, inside the run they indent", () => {
+    const out = protectWhitespace(lo(`<h3>${" ".repeat(5)}\n${" ".repeat(47)}<font face="Calibri">No retro</font></h3>`), {
+      hasRtf: false,
+      libreOffice: true,
+    });
+    const font = new DOMParser().parseFromString(out, "text/html").querySelector("font")!;
+    expect(font.textContent).toBe(`${" ".repeat(53)}No retro`);
+  });
+
+  it("keeps a run of two or more spaces between words", () => {
+    const out = protectWhitespace(lo("<p><span>No  retro-placental    collection</span></p>"), {
+      hasRtf: false,
+      libreOffice: true,
+    });
+    expect(textsOf(out)).toEqual(["No  retro-placental    collection"]);
+    expect(out).toContain('<span style="white-space: pre">    </span>');
+  });
+
+  it("writes a space that is an element's only content so the docx cleaner keeps it", () => {
+    const out = protectWhitespace(lo("<p><span>Fundal </span><b>\n</b><b>\nAnt</b></p>"), {
+      hasRtf: true,
+      libreOffice: true,
+    });
+    const bold = new DOMParser().parseFromString(out, "text/html").querySelector("b")!;
+    expect(bold.textContent).toBe(NBSP);
+  });
+
+  it("leaves a non-LibreOffice paste's plain space runs to collapse, as before", () => {
+    expect(protectWhitespace("<p>One   Two</p>", { hasRtf: false })).toBe("<p>One   Two</p>");
+  });
+});

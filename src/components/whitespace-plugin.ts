@@ -17,13 +17,23 @@ import { protectWhitespace } from "@/lib/whitespace";
  * editor saved — all of which arrived here with the gaps closed up. See
  * lib/whitespace.ts.
  */
+/** LibreOffice and OpenOffice name themselves in a generator `<meta>`. */
+const LIBRE_OFFICE_GENERATOR = /<meta[^>]*content=["']?(?:LibreOffice|OpenOffice)/i;
+
 export const WhitespacePlugin = createSlatePlugin({
   key: "whitespacePreservation",
   inject: {
     plugins: {
       [KEYS.html]: {
         parser: {
-          transformData: ({ data }: { data: string }) => protectWhitespace(data),
+          // The clipboard's RTF decides whether Plate's docx cleaner runs on
+          // this paste, and that decides how a tab run has to be protected.
+          // LibreOffice's HTML keeps its spaces and newlines as typed and wrapped.
+          transformData: ({ data, dataTransfer }: { data: string; dataTransfer: DataTransfer }) =>
+            protectWhitespace(data, {
+              hasRtf: !!dataTransfer.getData("text/rtf"),
+              libreOffice: LIBRE_OFFICE_GENERATOR.test(data),
+            }),
         },
       },
     },

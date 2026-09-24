@@ -438,11 +438,13 @@ export const RichTextEdit = React.forwardRef<RichTextEditHandle, RichTextEditPro
             <Editor
               variant="report"
               // A tab is as wide as the distance to the next tab stop, and that
-              // distance is `tab-size` — 8 spaces by default, which is what the
-              // print pages, the PDF and the old Summernote editor all use.
-              // Tailwind's preflight sets 4 here, so a pasted report lined its
-              // columns up one way on screen and another way on paper.
-              className="[tab-size:8]"
+              // distance is `tab-size`: half an inch, Word's and LibreOffice's
+              // default stop. A report is written in one of those, and its tabs
+              // were typed against their stops — at 8 space-widths (~30px) the
+              // columns a document lined up came apart on paste. A host's print
+              // page has to state the same `tab-size: 0.5in`, so screen and
+              // paper agree. Tailwind's preflight would otherwise set 4.
+              className="[tab-size:0.5in]"
               placeholder={placeholder}
               spellCheck={false}
               style={{ minHeight }}

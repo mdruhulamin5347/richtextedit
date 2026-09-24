@@ -4,6 +4,7 @@ import { inlineInheritedColor } from "@/lib/inherited-color";
 import { inlineInheritedFontSize } from "@/lib/inherited-font-size";
 import { inlineLegacyAlignment } from "@/lib/legacy-alignment";
 import { inlineWordBorderBoxes } from "@/lib/word-border-box";
+import { inlineFontFaces } from "@/lib/font-face";
 import { protectWhitespace } from "@/lib/whitespace";
 import { deserializeHtml, type Value } from "platejs";
 import { useEditorRef } from "platejs/react";
@@ -87,10 +88,13 @@ export function WordImportToolbarButton({
       // Plate reads off no attribute at all.
       // `inlineWordBorderBoxes` because LibreOffice states a boxed heading as a
       // border on the paragraph, which no Plate node can carry.
+      // `inlineFontFaces` too: LibreOffice states a run's font as `<font face>`,
+      // which no Plate deserializer reads, so the document drew in whatever
+      // family its `<style>` block gave the paragraph.
       const prepared = protectWhitespace(
         inlineInheritedColor(
           inlineInheritedFontSize(
-            borderizeTables(inlineWordBorderBoxes(inlineLegacyAlignment(html)))
+            borderizeTables(inlineWordBorderBoxes(inlineFontFaces(inlineLegacyAlignment(html))))
           )
         )
       );

@@ -20,6 +20,7 @@ import { serializeWhitespace } from "./whitespace";
 import {
   borderShorthand,
   DEFAULT_CELL_PADDING,
+  DOCUMENT_SPACING_ATTRIBUTE,
   hasVisibleBorder,
   nodeCellSpan,
   type CellBorders,
@@ -111,8 +112,9 @@ function blockStyle(node: any): string {
   if (node.indent) parts.push(`margin-left: ${Number(node.indent) * 40}px`);
   if (node.lineHeight) parts.push(`line-height: ${node.lineHeight}`);
   // The space above and below a paragraph in a table CELL, which is most of a
-  // row's height — see `extractBlockSpacing`. No block outside a cell carries
-  // one, so this writes nothing anywhere else.
+  // row's height — see `extractBlockSpacing` — and on a paragraph a LibreOffice
+  // paste spaced by the document, zeros included — see `extractDocumentSpacing`.
+  // No other block carries one, so this writes nothing anywhere else.
   if (node.marginTop) parts.push(`margin-top: ${node.marginTop}`);
   if (node.marginBottom) parts.push(`margin-bottom: ${node.marginBottom}`);
   // The size the block itself is set in — BlockFontSizePlugin puts it there,
@@ -149,6 +151,8 @@ function blankLineBreak(node: any): string {
 export type LeafEdges = {
   atBlockStart?: boolean;
   atBlockEnd?: boolean;
+  /** The leaf before this one ended in a plain space. See serializeWhitespace. */
+  afterSpace?: boolean;
   /**
    * Is this node being written INSIDE a paragraph?
    *
@@ -180,6 +184,7 @@ function textWithBreaks(text: string, edges: LeafEdges): string {
       serializeWhitespace(line, {
         atBlockStart: i > 0 || (edges.atBlockStart ?? true),
         atBlockEnd: i < lines.length - 1 || (edges.atBlockEnd ?? true),
+        afterSpace: i === 0 && !!edges.afterSpace,
       })
     )
     .join("<br/>");
@@ -212,16 +217,23 @@ function serializeText(node: TText, edges: LeafEdges = {}): string {
   return text;
 }
 
+/** Does this serialized leaf end in a space HTML would collapse into the next? */
+const ENDS_IN_PLAIN_SPACE = / (<\/[a-z]+>)*$/;
+
 function serializeChildren(node: TElement, insideParagraph = false): string {
   const children = (node.children || []) as any[];
+  let afterSpace = false;
   return children
-    .map((c, i) =>
-      serializeNode(c, {
+    .map((c, i) => {
+      const html = serializeNode(c, {
         atBlockStart: i === 0,
         atBlockEnd: i === children.length - 1,
         insideParagraph,
-      })
-    )
+        afterSpace,
+      });
+      afterSpace = "text" in c && ENDS_IN_PLAIN_SPACE.test(html);
+      return html;
+    })
     .join("");
 }
 
@@ -306,7 +318,9 @@ export function serializeNode(node: TElement | TText, edges: LeafEdges = {}): st
 
   switch (el.type) {
     case "p":
-      return `<p${style}>${children || blankLineBreak(n)}</p>`;
+      // The mark says the margins are the document's own spacing, in place of
+      // the editor's padding — see `extractDocumentSpacing`.
+      return `<p${n.documentSpacing ? ` ${DOCUMENT_SPACING_ATTRIBUTE}="document"` : ""}${style}>${children || blankLineBreak(n)}</p>`;
     case "h1":
     case "h2":
     case "h3":

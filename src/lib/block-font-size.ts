@@ -56,8 +56,8 @@ const TEXT_BLOCKS: ReadonlySet<string> = new Set([
  * A line with NOTHING on it.
  *
  * Newlines only. A line of tabs or of spaces is a line the report lays out
- * with (see lib/whitespace.ts) and `tab-size` is counted in character widths,
- * so resizing one would move the columns it aligns. The two forms that do count
+ * with (see lib/whitespace.ts), and a run of spaces is as wide as the size it
+ * is set in, so resizing one would move the columns it aligns. The two forms that do count
  * are `""` — a line made with Enter — and `"\n"`, which is how a saved
  * `<p><br/></p>` reads back.
  */
